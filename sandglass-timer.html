@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đồng Hồ Cát</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sand: #e8c97a;
+    --sand-dark: #c9a84c;
+    --sand-light: #f5e4a8;
+    --glass: rgba(255,255,255,0.12);
+    --glass-border: rgba(255,255,255,0.25);
+    --wood: #5a3a1a;
+    --wood-light: #8b5a2b;
+    --bg1: #0f0c29;
+    --bg2: #302b63;
+    --bg3: #24243e;
+    --accent: #f9d976;
+    --accent2: #f39c12;
+    --text: #f0e6cc;
+  }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Lato', sans-serif;
+    color: var(--text);
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    padding: 16px 12px;
+  }
+
+  /* Starfield background */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50%       { opacity: 1;   transform: scale(1.4); }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(10px, 2.5vh, 28px);
+    width: 100%;
+    max-width: 480px;
+  }
+
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    letter-spacing: 6px;
+    color: var(--accent);
+    text-shadow: 0 0 24px rgba(249,217,118,0.6);
+    text-transform: uppercase;
+  }
+
+  /* ====== HOURGLASS ====== */
+  .hourglass-wrap {
+    position: relative;
+    width: clamp(110px, 28vw, 180px);
+    height: clamp(183px, 47vw, 300px);
+    cursor: pointer;
+    filter: drop-shadow(0 0 30px rgba(249,217,118,0.25));
+    transition: filter 0.3s;
+  }
+  .hourglass-wrap:hover { filter: drop-shadow(0 0 40px rgba(249,217,118,0.5)); }
+
+  svg.hourglass {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* Wood frame */
+  .wood-top, .wood-bot {
+    fill: var(--wood-light);
+    rx: 4;
+  }
+  .wood-edge {
+    fill: var(--wood);
+  }
+
+  /* Glass bulb clipPath regions */
+  .glass-top-fill {
+    fill: rgba(173,216,230,0.13);
+    stroke: var(--glass-border);
+    stroke-width: 1;
+  }
+  .glass-bot-fill {
+    fill: rgba(173,216,230,0.13);
+    stroke: var(--glass-border);
+    stroke-width: 1;
+  }
+
+  /* Sand */
+  #sand-top {
+    fill: url(#sandGradTop);
+    transition: none;
+  }
+  #sand-bot {
+    fill: url(#sandGradBot);
+    transition: none;
+  }
+
+  /* Falling stream */
+  #stream {
+    fill: var(--sand);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  /* Particle canvas */
+  #particles {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  /* ====== SHINE ====== */
+  .shine {
+    fill: none;
+    stroke: rgba(255,255,255,0.35);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  /* ====== TIMER DISPLAY ====== */
+  .timer-display {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2rem, 8vw, 4rem);
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(249,217,118,0.5);
+    min-width: 160px;
+    text-align: center;
+  }
+
+  /* ====== PRESET BUTTONS ====== */
+  .presets {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.72rem, 2vw, 0.85rem);
+    letter-spacing: 2px;
+    padding: clamp(7px, 1.5vw, 10px) clamp(14px, 4vw, 22px);
+    border: 1.5px solid var(--glass-border);
+    background: var(--glass);
+    color: var(--text);
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all 0.25s;
+    backdrop-filter: blur(8px);
+    text-transform: uppercase;
+  }
+  .btn:hover, .btn.active {
+    background: rgba(249,217,118,0.2);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 16px rgba(249,217,118,0.3);
+    transform: translateY(-2px);
+  }
+  .btn:active { transform: translateY(0); }
+
+  /* ====== CUSTOM INPUT ====== */
+  .custom-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .custom-row label {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    opacity: 0.7;
+    text-transform: uppercase;
+  }
+
+  .custom-row input {
+    width: clamp(58px, 15vw, 72px);
+    padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px);
+    border: 1.5px solid var(--glass-border);
+    background: var(--glass);
+    color: var(--accent);
+    border-radius: 8px;
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    text-align: center;
+    backdrop-filter: blur(8px);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .custom-row input:focus { border-color: var(--accent); }
+
+  /* ====== CONTROLS ====== */
+  .controls {
+    display: flex;
+    gap: 14px;
+  }
+
+  .ctrl-btn {
+    width: clamp(42px, 12vw, 54px);
+    height: clamp(42px, 12vw, 54px);
+    border-radius: 50%;
+    border: 2px solid var(--glass-border);
+    background: var(--glass);
+    color: var(--accent);
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.25s;
+    backdrop-filter: blur(8px);
+  }
+  .ctrl-btn:hover {
+    background: rgba(249,217,118,0.2);
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(249,217,118,0.35);
+    transform: scale(1.1);
+  }
+
+  /* ====== STATUS ====== */
+  .status {
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    height: 18px;
+    transition: opacity 0.3s;
+  }
+  .status.done {
+    opacity: 1;
+    color: var(--accent);
+    animation: pulse 0.8s ease-in-out infinite alternate;
+  }
+  @keyframes pulse {
+    from { text-shadow: none; }
+    to   { text-shadow: 0 0 12px var(--accent); }
+  }
+
+  /* ====== FLIP ANIMATION ====== */
+  .hourglass-wrap.flipping {
+    animation: flip 0.8s cubic-bezier(0.68,-0.55,0.27,1.55);
+  }
+  @keyframes flip {
+    0%   { transform: rotate(0deg); }
+    50%  { transform: rotate(90deg) scale(0.9); }
+    100% { transform: rotate(180deg); }
+  }
+
+  /* ====== GLOW RING (done) ====== */
+  .glow-ring {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 220px; height: 340px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    animation: none;
+  }
+  .glow-ring.active {
+    animation: ringPulse 1.2s ease-out infinite;
+  }
+  @keyframes ringPulse {
+    0%   { opacity: 0.9; transform: translate(-50%,-50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(1.4); }
+  }
+
+  /* Responsive */
+  @media (max-height: 650px) {
+    .hourglass-wrap { width: 100px; height: 167px; }
+    h1 { font-size: 1rem; letter-spacing: 4px; }
+    .timer-display { font-size: 1.8rem; }
+  }
+  @media (max-width: 360px) {
+    .custom-row { gap: 6px; }
+    .custom-row input { width: 58px; font-size: 0.9rem; }
+    .presets { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="container">
+  <h1>Đồng Hồ Cát</h1>
+
+  <!-- Hourglass -->
+  <div class="hourglass-wrap" id="hgWrap" title="Nhấn để lật đồng hồ">
+    <canvas id="particles"></canvas>
+    <div class="glow-ring" id="glowRing"></div>
+
+    <svg class="hourglass" viewBox="0 0 180 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="sandGradTop" cx="50%" cy="80%" r="60%">
+          <stop offset="0%"   stop-color="#f5e4a8"/>
+          <stop offset="100%" stop-color="#c9a84c"/>
+        </radialGradient>
+        <radialGradient id="sandGradBot" cx="50%" cy="20%" r="60%">
+          <stop offset="0%"   stop-color="#f5e4a8"/>
+          <stop offset="100%" stop-color="#c9a84c"/>
+        </radialGradient>
+        <linearGradient id="woodGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#3d2408"/>
+          <stop offset="40%"  stop-color="#8b5a2b"/>
+          <stop offset="100%" stop-color="#3d2408"/>
+        </linearGradient>
+
+        <!-- Clip paths for top and bottom bulbs -->
+        <clipPath id="clipTop">
+          <polygon points="10,18 170,18 100,152 80,152"/>
+        </clipPath>
+        <clipPath id="clipBot">
+          <polygon points="80,148 100,148 170,282 10,282"/>
+        </clipPath>
+      </defs>
+
+      <!-- Glass top bulb -->
+      <polygon class="glass-top-fill" points="10,18 170,18 100,152 80,152"/>
+      <!-- Glass bot bulb -->
+      <polygon class="glass-bot-fill" points="80,148 100,148 170,282 10,282"/>
+
+      <!-- Sand top -->
+      <polygon id="sand-top" points="10,18 170,18 100,152 80,152" clip-path="url(#clipTop)"/>
+      <!-- Sand bottom -->
+      <polygon id="sand-bot" points="80,148 100,148 170,282 10,282" clip-path="url(#clipBot)"/>
+
+      <!-- Stream of sand -->
+      <rect id="stream" x="88" y="148" width="4" height="8" rx="2"/>
+
+      <!-- Shine lines on glass -->
+      <line class="shine" x1="24" y1="30" x2="50" y2="120"/>
+      <line class="shine" x1="156" y1="30" x2="130" y2="120"/>
+      <line class="shine" x1="30" y1="270" x2="60" y2="170"/>
+
+      <!-- Wood frame top -->
+      <rect x="4" y="8" width="172" height="14" rx="5" fill="url(#woodGrad)"/>
+      <rect x="0" y="10" width="180" height="10" rx="4" fill="url(#woodGrad)" opacity="0.6"/>
+
+      <!-- Wood frame bottom -->
+      <rect x="4" y="278" width="172" height="14" rx="5" fill="url(#woodGrad)"/>
+      <rect x="0" y="280" width="180" height="10" rx="4" fill="url(#woodGrad)" opacity="0.6"/>
+
+      <!-- Center bolt -->
+      <circle cx="90" cy="150" r="5" fill="#c9a84c" stroke="#5a3a1a" stroke-width="1.5"/>
+    </svg>
+  </div>
+
+  <!-- Timer display -->
+  <div class="timer-display" id="timerDisplay">01:00</div>
+
+  <!-- Status -->
+  <div class="status" id="statusText">Sẵn sàng</div>
+
+  <!-- Preset buttons -->
+  <div class="presets">
+    <button class="btn active" data-sec="60">1 Phút</button>
+    <button class="btn" data-sec="180">3 Phút</button>
+    <button class="btn" data-sec="300">5 Phút</button>
+  </div>
+
+  <!-- Custom time -->
+  <div class="custom-row">
+    <label>Tùy chỉnh:</label>
+    <input type="number" id="customMin" min="0" max="99" placeholder="0" value="" title="Phút"/>
+    <span style="opacity:0.5">:</span>
+    <input type="number" id="customSec" min="0" max="59" placeholder="00" value="" title="Giây"/>
+    <button class="btn" id="setCustom">Đặt</button>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="ctrl-btn" id="btnStart" title="Bắt đầu">▶</button>
+    <button class="ctrl-btn" id="btnPause" title="Tạm dừng">⏸</button>
+    <button class="ctrl-btn" id="btnReset" title="Đặt lại">↺</button>
+  </div>
+</div>
+
+<script>
+/* === Stars === */
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 120; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 2.5 + 0.5;
+  s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--delay:${(Math.random()*4).toFixed(1)}s`;
+  starsEl.appendChild(s);
+}
+
+/* === State === */
+let totalSeconds = 60;
+let remaining   = 60;
+let running     = false;
+let interval    = null;
+let flipped     = false; // track orientation
+let audioCtx    = null;
+
+const display   = document.getElementById('timerDisplay');
+const status    = document.getElementById('statusText');
+const sandTop   = document.getElementById('sand-top');
+const sandBot   = document.getElementById('sand-bot');
+const stream    = document.getElementById('stream');
+const hgWrap    = document.getElementById('hgWrap');
+const glowRing  = document.getElementById('glowRing');
+const canvas    = document.getElementById('particles');
+const ctx       = canvas.getContext('2d');
+
+// Resize canvas
+function resizeCanvas() {
+  canvas.width  = hgWrap.offsetWidth;
+  canvas.height = hgWrap.offsetHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+/* === SVG Sand Animation === */
+// Top bulb polygon points (trapezoid narrowing toward center)
+// Full top: "10,18 170,18 100,152 80,152"
+// Progress 0..1 = fraction of sand remaining in top
+
+const TOP_TL = [10, 18], TOP_TR = [170, 18];
+const TOP_BL = [80, 152], TOP_BR = [100, 152];
+const BOT_TL = [80, 148], BOT_TR = [100, 148];
+const BOT_BL = [10, 282], BOT_BR = [170, 282];
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function updateSandSVG() {
+  const ratio = totalSeconds > 0 ? remaining / totalSeconds : 0; // 1=full, 0=empty
+
+  // Top bulb: starts full, shrinks from bottom up
+  // When ratio=1, bottom edge of sand = full bottom of bulb
+  // When ratio=0, bottom edge = top of bulb (empty)
+  const topSandBot_y = lerp(TOP_BL[1], TOP_TL[1], 1 - ratio);
+  // x of bottom edge narrows based on y position along trapezoid
+  const topFrac = (topSandBot_y - TOP_TL[1]) / (TOP_BL[1] - TOP_TL[1]);
+  const topSandBL_x = lerp(TOP_TL[0], TOP_BL[0], topFrac);
+  const topSandBR_x = lerp(TOP_TR[0], TOP_BR[0], topFrac);
+
+  sandTop.setAttribute('points',
+    `${TOP_TL[0]},${TOP_TL[1]} ${TOP_TR[0]},${TOP_TR[1]} ${topSandBR_x},${topSandBot_y} ${topSandBL_x},${topSandBot_y}`
+  );
+
+  // Bottom bulb: starts empty, fills from top down
+  const botSandTop_y = lerp(BOT_TL[1], BOT_BL[1], ratio);
+  const botFrac = (botSandTop_y - BOT_TL[1]) / (BOT_BL[1] - BOT_TL[1]);
+  const botSandTL_x = lerp(BOT_TL[0], BOT_BL[0], botFrac);
+  const botSandTR_x = lerp(BOT_TR[0], BOT_BR[0], botFrac);
+
+  sandBot.setAttribute('points',
+    `${botSandTL_x},${botSandTop_y} ${botSandTR_x},${botSandTop_y} ${BOT_BR[0]},${BOT_BR[1]} ${BOT_BL[0]},${BOT_BL[1]}`
+  );
+
+  // Stream
+  if (running && remaining > 0) {
+    stream.style.opacity = '1';
+    stream.setAttribute('y', topSandBot_y);
+    stream.setAttribute('height', botSandTop_y - topSandBot_y);
+  } else {
+    stream.style.opacity = '0';
+  }
+}
+
+/* === Sand particles === */
+const particles = [];
+function spawnParticle() {
+  const cx = canvas.width / 2;
+  const startY = canvas.height * 0.5;
+  particles.push({
+    x: cx + (Math.random() - 0.5) * 6,
+    y: startY,
+    vx: (Math.random() - 0.5) * 0.8,
+    vy: Math.random() * 1.5 + 0.8,
+    size: Math.random() * 2.5 + 1,
+    life: 1,
+    decay: Math.random() * 0.04 + 0.02
+  });
+}
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (running && remaining > 0) {
+    for (let i = 0; i < 3; i++) spawnParticle();
+  }
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x  += p.vx;
+    p.y  += p.vy;
+    p.vy += 0.05;
+    p.life -= p.decay;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    ctx.globalAlpha = p.life * 0.85;
+    ctx.fillStyle   = '#e8c97a';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+/* === Timer logic === */
+function formatTime(s) {
+  const m = Math.floor(s / 60).toString().padStart(2, '0');
+  const sec = (s % 60).toString().padStart(2, '0');
+  return `${m}:${sec}`;
+}
+
+function setStatus(txt, done = false) {
+  status.textContent = txt;
+  status.className   = 'status' + (done ? ' done' : '');
+}
+
+function tick() {
+  if (remaining <= 0) {
+    clearInterval(interval);
+    running = false;
+    stream.style.opacity = '0';
+    updateSandSVG();
+    setStatus('✦ Xong rồi! ✦', true);
+    glowRing.classList.add('active');
+    dingSound();
+    return;
+  }
+  remaining--;
+  display.textContent = formatTime(remaining);
+  updateSandSVG();
+}
+
+function startTimer() {
+  if (running || remaining <= 0) return;
+  running = true;
+  setStatus('Đang chạy…');
+  glowRing.classList.remove('active');
+  interval = setInterval(tick, 1000);
+  updateSandSVG();
+}
+
+function pauseTimer() {
+  if (!running) return;
+  clearInterval(interval);
+  running = false;
+  stream.style.opacity = '0';
+  setStatus('Đang dừng');
+  updateSandSVG();
+}
+
+function resetTimer() {
+  clearInterval(interval);
+  running  = false;
+  remaining = totalSeconds;
+  display.textContent = formatTime(remaining);
+  stream.style.opacity = '0';
+  glowRing.classList.remove('active');
+  setStatus('Sẵn sàng');
+  updateSandSVG();
+}
+
+function setTime(sec) {
+  pauseTimer();
+  totalSeconds = sec;
+  remaining    = sec;
+  display.textContent = formatTime(remaining);
+  glowRing.classList.remove('active');
+  setStatus('Sẵn sàng');
+  updateSandSVG();
+}
+
+function ensureAudioContext() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    audioCtx = new AC();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+/* === Controls === */
+document.getElementById('btnStart').addEventListener('click', () => {
+  ensureAudioContext();
+  startTimer();
+});
+document.getElementById('btnPause').addEventListener('click', () => {
+  ensureAudioContext();
+  pauseTimer();
+});
+document.getElementById('btnReset').addEventListener('click', () => {
+  ensureAudioContext();
+  resetTimer();
+});
+
+// Preset buttons
+document.querySelectorAll('.btn[data-sec]').forEach(b => {
+  b.addEventListener('click', () => {
+    ensureAudioContext();
+    document.querySelectorAll('.btn[data-sec]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    setTime(parseInt(b.dataset.sec));
+  });
+});
+
+// Custom time
+document.getElementById('setCustom').addEventListener('click', () => {
+  ensureAudioContext();
+  const m = parseInt(document.getElementById('customMin').value) || 0;
+  const s = parseInt(document.getElementById('customSec').value) || 0;
+  const total = m * 60 + s;
+  if (total <= 0) return;
+  document.querySelectorAll('.btn[data-sec]').forEach(x => x.classList.remove('active'));
+  setTime(total);
+});
+
+// Click hourglass to flip (restart)
+hgWrap.addEventListener('click', () => {
+  ensureAudioContext();
+  if (hgWrap.classList.contains('flipping')) return;
+  hgWrap.classList.add('flipping');
+  setTimeout(() => {
+    hgWrap.classList.remove('flipping');
+    clearInterval(interval);
+    running  = false;
+    remaining = totalSeconds;
+    display.textContent = formatTime(remaining);
+    stream.style.opacity = '0';
+    glowRing.classList.remove('active');
+    setStatus('Sẵn sàng');
+    updateSandSVG();
+    startTimer();
+  }, 800);
+});
+
+/* === Ding sound (Web Audio) === */
+function dingSound() {
+  try {
+    const ac = ensureAudioContext();
+    if (!ac || ac.state !== 'running') return;
+    const now = ac.currentTime;
+
+    const playNote = (freq, start, duration, volume = 0.25) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, start);
+
+      osc.connect(gain);
+      gain.connect(ac.destination);
+
+      // Fast attack + smooth decay for a soft chime.
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(volume, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+      osc.start(start);
+      osc.stop(start + duration);
+    };
+
+    // 3-note finish chime: C6 - E6 - G6
+    playNote(1046.5, now, 0.35, 0.2);
+    playNote(1318.5, now + 0.22, 0.35, 0.18);
+    playNote(1568.0, now + 0.44, 0.45, 0.22);
+  } catch(e) {}
+}
+
+/* === Init === */
+updateSandSVG();
+</script>
+</body>
+</html>

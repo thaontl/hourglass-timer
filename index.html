@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đồng hồ cát nâng cấp</title>
+  <style>
+    :root {
+      --water-main: #7fd9ff;
+      --water-deep: #3da9de;
+      --water-light: #bfeeff;
+      --frame: #2f7ea3;
+      --bg: #eef8ff;
+      --primary: #3a9fe0;
+      --primary-hover: #2f87c0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #ffffff, var(--bg));
+      color: #1c1c1c;
+    }
+
+    .app {
+      width: 320px;
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 22px;
+      text-align: center;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: 20px;
+    }
+
+    .glass {
+      position: relative;
+      width: 128px;
+      height: 190px;
+      margin: 0 auto 14px;
+      border: 4px solid var(--frame);
+      border-radius: 10px;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #f7fdff, #eef8ff);
+    }
+
+    .top-water,
+    .bottom-water {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(to bottom, var(--water-light), var(--water-main));
+      transition: height 0.95s linear;
+      overflow: hidden;
+    }
+
+    .top-water {
+      top: 0;
+      height: 100%;
+    }
+
+    .bottom-water {
+      bottom: 0;
+      height: 0%;
+    }
+
+    .neck {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 8px;
+      height: 10px;
+      border-radius: 3px;
+      background: var(--water-deep);
+      transform: translate(-50%, -50%);
+      z-index: 4;
+    }
+
+    .wave {
+      position: absolute;
+      left: -20%;
+      width: 140%;
+      height: 24px;
+      border-radius: 42% 58% 50% 50% / 60% 60% 40% 40%;
+      background: rgba(255, 255, 255, 0.52);
+      animation: waveMove 3.2s ease-in-out infinite;
+    }
+
+    .top-water .wave {
+      bottom: -8px;
+    }
+
+    .bottom-water .wave {
+      top: -8px;
+    }
+
+    .wave.back {
+      opacity: 0.55;
+      animation-duration: 4.4s;
+      animation-direction: reverse;
+    }
+
+    @keyframes waveMove {
+      0% { transform: translateX(0) scaleY(1); }
+      50% { transform: translateX(-6%) scaleY(0.88); }
+      100% { transform: translateX(0) scaleY(1); }
+    }
+
+    .flow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 3px;
+      height: 0;
+      transform: translateX(-50%);
+      background: var(--water-deep);
+      border-radius: 999px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 3;
+    }
+
+    .flow.running {
+      opacity: 1;
+      height: 44%;
+      animation: shimmer 0.35s linear infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-50%) scaleY(1); }
+      50% { transform: translateX(-50%) scaleY(0.9); }
+      100% { transform: translateX(-50%) scaleY(1); }
+    }
+
+    .time {
+      font-size: 28px;
+      margin: 10px 0 8px;
+      font-weight: 700;
+    }
+
+    .status {
+      min-height: 20px;
+      color: #666666;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .presets {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .preset {
+      border: 1px solid #d4d8e2;
+      background: #f7f9ff;
+      color: #2a5d80;
+      border-radius: 999px;
+      padding: 6px 11px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .preset.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    button {
+      border: none;
+      background: var(--primary);
+      color: #ffffff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+    }
+
+    .secondary {
+      background: #8b95a8;
+    }
+
+    .secondary:hover {
+      background: #70798b;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Đồng hồ cát</h1>
+    <div class="glass">
+      <div class="top-water" id="topSand">
+        <div class="wave"></div>
+        <div class="wave back"></div>
+      </div>
+      <div class="bottom-water" id="bottomSand">
+        <div class="wave"></div>
+        <div class="wave back"></div>
+      </div>
+      <div class="neck"></div>
+      <div class="flow" id="sandFlow"></div>
+    </div>
+
+    <div class="time" id="timeText">01:00</div>
+    <div class="status" id="statusText">Chọn thời gian rồi bấm Bắt đầu</div>
+
+    <div class="presets">
+      <button class="preset active" data-minutes="1">1 phút</button>
+      <button class="preset" data-minutes="3">3 phút</button>
+      <button class="preset" data-minutes="5">5 phút</button>
+    </div>
+
+    <div class="actions">
+      <button id="startBtn">Bắt đầu / Lật đồng hồ</button>
+      <button id="resetBtn" class="secondary">Đặt lại</button>
+    </div>
+  </div>
+
+  <script>
+    const topSand = document.getElementById("topSand");
+    const bottomSand = document.getElementById("bottomSand");
+    const sandFlow = document.getElementById("sandFlow");
+    const timeText = document.getElementById("timeText");
+    const statusText = document.getElementById("statusText");
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const presetButtons = Array.from(document.querySelectorAll(".preset"));
+
+    let totalSeconds = 60;
+    let remainSeconds = totalSeconds;
+    let timer = null;
+
+    function formatTime(seconds) {
+      const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+      const ss = String(seconds % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+    function render() {
+      const progress = (totalSeconds - remainSeconds) / totalSeconds;
+      topSand.style.height = `${(1 - progress) * 100}%`;
+      bottomSand.style.height = `${progress * 100}%`;
+      timeText.textContent = formatTime(remainSeconds);
+    }
+
+    function playDoneSound() {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.value = 880;
+      gain.gain.value = 0.0001;
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+
+      gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+      osc.stop(ctx.currentTime + 0.36);
+    }
+
+    function stopTimer() {
+      clearInterval(timer);
+      timer = null;
+      sandFlow.classList.remove("running");
+    }
+
+    function setPreset(minutes) {
+      stopTimer();
+      totalSeconds = minutes * 60;
+      remainSeconds = totalSeconds;
+      statusText.textContent = `Đã chọn ${minutes} phút`;
+      render();
+      presetButtons.forEach((btn) => {
+        const isActive = Number(btn.dataset.minutes) === minutes;
+        btn.classList.toggle("active", isActive);
+      });
+    }
+
+    function startTimer() {
+      stopTimer();
+      remainSeconds = totalSeconds;
+      render();
+      statusText.textContent = "Đang chảy nước...";
+      sandFlow.classList.add("running");
+
+      timer = setInterval(() => {
+        remainSeconds -= 1;
+        render();
+
+        if (remainSeconds <= 0) {
+          stopTimer();
+          statusText.textContent = "Hết giờ!";
+          timeText.textContent = "00:00";
+          playDoneSound();
+        }
+      }, 1000);
+    }
+
+    presetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        setPreset(Number(button.dataset.minutes));
+      });
+    });
+
+    startBtn.addEventListener("click", startTimer);
+    resetBtn.addEventListener("click", () => {
+      setPreset(Math.max(1, Math.floor(totalSeconds / 60)));
+      statusText.textContent = "Đã đặt lại";
+    });
+
+    render();
+  </script>
+</body>
+</html>
