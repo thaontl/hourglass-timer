@@ -548,7 +548,7 @@ function populateCustomSelects() {
     option.textContent = m.toString().padStart(2, '0');
     customMinEl.appendChild(option);
   }
-  for (let s = 1; s <= 59; s++) {
+  for (let s = 0; s <= 59; s++) {
     const option = document.createElement('option');
     option.value = String(s);
     option.textContent = s.toString().padStart(2, '0');
