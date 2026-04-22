@@ -74,20 +74,11 @@
     max-width: 480px;
   }
 
-  h1 {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1.4rem, 4vw, 2.2rem);
-    letter-spacing: 6px;
-    color: var(--accent);
-    text-shadow: 0 0 24px rgba(249,217,118,0.6);
-    text-transform: uppercase;
-  }
-
   /* ====== HOURGLASS ====== */
   .hourglass-wrap {
     position: relative;
-    width: clamp(110px, 28vw, 180px);
-    height: clamp(183px, 47vw, 300px);
+    width: clamp(180px, 48vw, 295px);
+    height: clamp(300px, 79vw, 492px);
     cursor: pointer;
     filter: drop-shadow(0 0 30px rgba(249,217,118,0.25));
     transition: filter 0.3s;
@@ -196,7 +187,7 @@
   }
   .btn:active { transform: translateY(0); }
 
-  /* ====== CUSTOM INPUT ====== */
+  /* ====== CUSTOM SELECT ====== */
   .custom-row {
     display: flex;
     align-items: center;
@@ -212,7 +203,7 @@
     text-transform: uppercase;
   }
 
-  .custom-row input {
+  .custom-row select {
     width: clamp(58px, 15vw, 72px);
     padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px);
     border: 1.5px solid var(--glass-border);
@@ -225,8 +216,10 @@
     backdrop-filter: blur(8px);
     outline: none;
     transition: border-color 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
   }
-  .custom-row input:focus { border-color: var(--accent); }
+  .custom-row select:focus { border-color: var(--accent); }
 
   /* ====== CONTROLS ====== */
   .controls {
@@ -305,13 +298,12 @@
 
   /* Responsive */
   @media (max-height: 650px) {
-    .hourglass-wrap { width: 100px; height: 167px; }
-    h1 { font-size: 1rem; letter-spacing: 4px; }
+    .hourglass-wrap { width: 161px; height: 269px; }
     .timer-display { font-size: 1.8rem; }
   }
   @media (max-width: 360px) {
     .custom-row { gap: 6px; }
-    .custom-row input { width: 58px; font-size: 0.9rem; }
+    .custom-row select { width: 58px; font-size: 0.9rem; }
     .presets { gap: 8px; }
   }
 </style>
@@ -321,8 +313,6 @@
 <div class="stars" id="stars"></div>
 
 <div class="container">
-  <h1>Đồng Hồ Cát</h1>
-
   <!-- Hourglass -->
   <div class="hourglass-wrap" id="hgWrap" title="Nhấn để lật đồng hồ">
     <canvas id="particles"></canvas>
@@ -400,9 +390,9 @@
   <!-- Custom time -->
   <div class="custom-row">
     <label>Tùy chỉnh:</label>
-    <input type="number" id="customMin" min="0" max="99" placeholder="0" value="" title="Phút"/>
+    <select id="customMin" title="Phút"></select>
     <span style="opacity:0.5">:</span>
-    <input type="number" id="customSec" min="0" max="59" placeholder="00" value="" title="Giây"/>
+    <select id="customSec" title="Giây"></select>
     <button class="btn" id="setCustom">Đặt</button>
   </div>
 
@@ -435,6 +425,8 @@ let audioCtx    = null;
 
 const display   = document.getElementById('timerDisplay');
 const status    = document.getElementById('statusText');
+const customMinEl = document.getElementById('customMin');
+const customSecEl = document.getElementById('customSec');
 const sandTop   = document.getElementById('sand-top');
 const sandBot   = document.getElementById('sand-bot');
 const stream    = document.getElementById('stream');
@@ -549,6 +541,24 @@ function setStatus(txt, done = false) {
   status.className   = 'status' + (done ? ' done' : '');
 }
 
+function populateCustomSelects() {
+  for (let m = 1; m <= 60; m++) {
+    const option = document.createElement('option');
+    option.value = String(m);
+    option.textContent = m.toString().padStart(2, '0');
+    customMinEl.appendChild(option);
+  }
+  for (let s = 1; s <= 59; s++) {
+    const option = document.createElement('option');
+    option.value = String(s);
+    option.textContent = s.toString().padStart(2, '0');
+    customSecEl.appendChild(option);
+  }
+
+  customMinEl.value = '1';
+  customSecEl.value = '1';
+}
+
 function tick() {
   if (remaining <= 0) {
     clearInterval(interval);
@@ -643,8 +653,8 @@ document.querySelectorAll('.btn[data-sec]').forEach(b => {
 // Custom time
 document.getElementById('setCustom').addEventListener('click', () => {
   ensureAudioContext();
-  const m = parseInt(document.getElementById('customMin').value) || 0;
-  const s = parseInt(document.getElementById('customSec').value) || 0;
+  const m = parseInt(customMinEl.value, 10) || 0;
+  const s = parseInt(customSecEl.value, 10) || 0;
   const total = m * 60 + s;
   if (total <= 0) return;
   document.querySelectorAll('.btn[data-sec]').forEach(x => x.classList.remove('active'));
@@ -704,6 +714,7 @@ function dingSound() {
 }
 
 /* === Init === */
+populateCustomSelects();
 updateSandSVG();
 </script>
 </body>
