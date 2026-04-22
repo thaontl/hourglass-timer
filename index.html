@@ -542,7 +542,7 @@ function setStatus(txt, done = false) {
 }
 
 function populateCustomSelects() {
-  for (let m = 1; m <= 60; m++) {
+  for (let m = 0; m <= 60; m++) {
     const option = document.createElement('option');
     option.value = String(m);
     option.textContent = m.toString().padStart(2, '0');
